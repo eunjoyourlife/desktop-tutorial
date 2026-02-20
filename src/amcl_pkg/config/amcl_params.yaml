@@ -1,0 +1,65 @@
+amcl:
+  ros__parameters:
+    use_sim_time: false
+
+    # ── 프레임 설정 ──────────────────────────────────────────────────── 
+    # 솔직히 이거 줄 주석 좀 예쁜 것 같음(아 이런거 주석에 넣어도 되나? 머쓱..)
+    # wheel_odom_tf.cpp 에서 odom→base_link 로 TF 발행
+    # sllidar_t1_launch.py 에서 frame_id: "laser"
+    base_frame_id:   "base_link"   # wheel_odom_tf.cpp child_frame_id
+    odom_frame_id:   "odom"        # wheel_odom_tf.cpp header.frame_id
+    global_frame_id: "map"
+    scan_topic:      "scan"        # sllidar_node 기본 발행 토픽
+
+    # ── 파티클 필터 설정 ────────────────────────────────────────────────
+    min_particles: 500
+    max_particles: 3000 #파티클 개수
+    pf_err:  0.05 #오차 허용값
+    pf_z:    0.99
+    resample_interval: 1 #파티클 재샘플링. 숫자가 클수록 덜 함 
+
+    # ── 레이저 센서 모델 (SLLIDAR T1 기준) ──────────────────────────────
+    laser_model_type:          "likelihood_field"
+    laser_max_range:           12.0     # SLLIDAR T1 최대 측정 거리 12m
+    laser_min_range:           0.15     # T1 최소 측정 거리
+    max_beams:                 60
+    laser_likelihood_max_dist: 2.0
+
+    z_hit:    0.5
+    z_max:    0.05
+    z_rand:   0.5
+    z_short:  0.05
+    sigma_hit: 0.2
+
+    # ── 오도메트리 노이즈 (차량 기준 — wheelbase 3.3m <-임의값) ──────────────────
+    # 자율주행차량은 일반 소형 로봇보다 직진 정밀도가 높지만
+    # 조향각 오차가 있으므로 alpha2/4를 약간 높게 설정
+    alpha1: 0.1    # 회전 → 회전 노이즈
+    alpha2: 0.2    # 이동 → 회전 노이즈 (조향 오차)
+    alpha3: 0.1    # 이동 → 이동 노이즈
+    alpha4: 0.2    # 회전 → 이동 노이즈
+    alpha5: 0.1    # (omni 로봇용 — 차량에서는 거의 사용 안 함)
+
+    # ── 업데이트 조건 ────────────────────────────────────────────────────
+    # 차량이 느리게 움직이는 경우 0.1로 낮춰도 됨
+    # 너무 자주 업테이트 하면 연산 낭비라서 최소 조건을 설정 
+    # 이 값이 맞는지는 잘 모르겟스요 
+    update_min_d: 0.2    # 0.2m 이상 이동 시 업데이트
+    update_min_a: 0.1    # 0.1rad 이상 회전 시 업데이트
+
+    # ── 초기 위치 (RViz2 "2D Pose Estimate"로 하면 좋음요) ────────────────
+    set_initial_pose: false
+    initial_pose:
+      x:   0.0
+      y:   0.0
+      z:   0.0
+      yaw: 0.0
+
+    # ── 복구 및 기타 ─────────────────────────────────────────────────────
+    #위치 추정이 실패했을 때 랜덤 파티클을 뿌려서 복구하는 속도를 의미
+    #fast가 크면 빠르게 복구를 시도함
+    recovery_alpha_slow: 0.001
+    recovery_alpha_fast: 0.1
+    save_pose_rate: 0.5 #현재 위치를 2초마다 저장(0.5헤르)
+    tf_broadcast: true    # map→odom TF 발행 (AMCL이 담당)
+    #이래야 로봇이 지도위에서 위치를 잡을 수 잇슴
